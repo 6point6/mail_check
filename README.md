@@ -1,6 +1,8 @@
 # mail_check
 Script for checking the DNS record of a domain.
 
+Uses python library checkdmarc, which works when provided with a name server. See https://github.com/domainaware/checkdmarc/blob/master/checkdmarc.py.
+
 # Example
 ```Shell
 $ python3 mail_check.py bbc.co.uk
