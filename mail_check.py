@@ -12,24 +12,24 @@ def check_DMARC(domain):
         #print(dmarc)
 
         # location
-        print("Location: %s" % dmarc["location"])
+        print("Location: \t%s" % dmarc["location"])
 
         # record
-        print("Raw Record: %s" % dmarc["record"])
+        print("Raw Record: \t%s" % dmarc["record"])
 
         # parsed
         parsed = dmarc["parsed"]
 
         # version
-        print("Version: %s" % parsed["tags"]["v"]["value"])
+        print("Version: \t%s" % parsed["tags"]["v"]["value"])
 
         # get DKIM
-        print("DKIM explicit: %s" % parsed["tags"]["adkim"]["explicit"])
+        print("DKIM explicit: \t%s" % parsed["tags"]["adkim"]["explicit"])
         
         # Get SPF
-        print("SPF explicit: %s" % parsed["tags"]["aspf"]["explicit"])
+        print("SPF explicit: \t%s" % parsed["tags"]["aspf"]["explicit"])
         if parsed["tags"]["aspf"]["explicit"] is True:
-            print("SPF Value: %s" % parsed["tags"]["aspf"]["value"])
+            print("SPF Value: \t%s" % parsed["tags"]["aspf"]["value"])
         
         # print all the dicts anyway
         #print("\nAll data:")
