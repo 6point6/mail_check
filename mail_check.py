@@ -32,9 +32,9 @@ def check_DMARC(domain):
             print("SPF Value: \t%s" % parsed["tags"]["aspf"]["value"])
         
         # print all the dicts anyway
-        #print("\nAll data:")
-        #for key in parsed["tags"]:
-           #print("%s: %s" % (key, parsed["tags"][key]))
+        print("\nAll data:")
+        for key in parsed["tags"]:
+           print("%s: %s" % (key, parsed["tags"][key]))
         
         print("\n")
 
@@ -65,14 +65,26 @@ def get_hosts(domain):
     try:
         dmarc = checkdmarc.get_mx_hosts(domain, timeout=10.0, nameservers=["8.8.8.8", "1.1.1.1"])
         
-        print(dmarc)
+        #print(dmarc)
+
+        for host_record in dmarc["hosts"]:
+            print("Hostname: %s, preference: %s, TLS: %s, starttls: %s." % (host_record["hostname"], host_record["preference"], host_record["tls"], host_record["starttls"]))
+            print("Addresses: ", end="")
+
+            for address in host_record["addresses"]:
+                print("%s, " % address, end="")
+            
+            print("\n")
+
+        for warning in dmarc["warnings"]:
+            print("Warning: %s" % warning)
 
         # TODO parse this
     except Exception as e:
             print('Error with ' + domain)
             print(e)
 
-    print("\n")
+    print()
 
 
 def check_SPF(pure_domain):
@@ -83,7 +95,7 @@ def check_SPF(pure_domain):
         
         print("SPF Record: %s" % dmarc["record"])
 
-        #print("Warning: %s" % dmarc["warnings"])
+        print("Warning: %s" % dmarc["warnings"])
 
         # TODO parse this
     except Exception as e:
@@ -101,7 +113,7 @@ if __name__ == '__main__':
     domain = sys.argv[1]
 
     pure_domain = checkdmarc.get_base_domain(domain)
-    print("Pure domain = \"%s\"" % pure_domain)
+    print("Pure domain = \"%s\"\n" % pure_domain)
 
     get_hosts(pure_domain)
     check_DMARC(pure_domain)
