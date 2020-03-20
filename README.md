@@ -3,6 +3,11 @@ Script for checking the DNS record of a domain.
 
 Uses python library checkdmarc, which works when provided with a name server. See https://github.com/domainaware/checkdmarc/blob/master/checkdmarc.py.
 
+First install the lib:
+```
+pip3 install checkdmarc
+```
+
 # Example
 ```Shell
 $ python3 mail_check/mail_check.py bbc.co.uk
