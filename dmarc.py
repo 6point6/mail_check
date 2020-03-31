@@ -3,6 +3,7 @@ import checkdmarc
 VERSION_INDEX = 0
 P_INDEX = 1
 
+# explanations stolen from https://dmarcian.com/dmarc-inspector/
 def process_DMARC(domain):
     print("==== DMARC ====")
 
@@ -28,20 +29,30 @@ def process_DMARC(domain):
         parsed = dmarc["parsed"]
 
         # version
+        # The DMARC version should always be "DMARC1".
+        # Note: A wrong, or absent DMARC version tag would cause the entire record to be ignored
         print("Version: \t%s" % parsed["tags"]["v"]["value"])
 
         # p
+        # Policy applied to emails that fails the DMARC check. Authorized values: "none", "quarantine", or "reject". 
+        # "none" is used to collect feedback and gain visibility into email streams without impacting existing flows. 
+        # "quarantine" allows Mail Receivers to treat email that fails the DMARC check as suspicious. Most of the time, they will end up in your SPAM folder. 
+        # "reject" outright rejects all emails that fail the DMARC check.
         print("Requested Mail Receiver Policy: %s (%s)" % (parsed["tags"]["p"]["explicit"], parsed["tags"]["p"]["value"]))
 
         # get DKIM
         print("Explicit alignment mode for DKIM: \t%s" % parsed["tags"]["adkim"]["explicit"])
         
-        # Get SPF
+        # Get ASPF
+        # Specifies “Alignment Mode” for SPF.
+        # Authorized values: “r”, “s”. “r”, or “Relaxed Mode” allows SPF Authenticated domains that share a common Organizational Domain with an email’s “header-From:” domain to pass the DMARC check. “s”, or “Strict Mode” requires exact matching between the SPF domain and an email’s “header-From:” domain.
         print("Explicit alignment mode for SPF: \t%s" % parsed["tags"]["aspf"]["explicit"])
         if parsed["tags"]["aspf"]["explicit"] is True:
             print("SPF Value: \t%s" % parsed["tags"]["aspf"]["value"])
 
         # rua
+        # The list of URIs for receivers to send XML feedback to.
+        # Note: This is not a list of email addresses, as DMARC requires a list of URIs of the form “mailto:address@example.org”.
         if parsed["tags"]["ruf"] is not None:
             print("Aggregate Report Mailbox (RUA): %s (" % parsed["tags"]["rua"]["explicit"], end="")
 
@@ -50,6 +61,8 @@ def process_DMARC(domain):
             
             print(")")
 
+        # The list of URIs for receivers to send Forensic reports to.
+        # Note: This is not a list of email addresses, as DMARC requires a list of URIs of the form “mailto:address@example.org”.
         if parsed["tags"]["ruf"] is not None:
             print("Forensic Report Mailbox (RUF): %s (" % parsed["tags"]["ruf"]["explicit"], end="")
 
@@ -59,9 +72,15 @@ def process_DMARC(domain):
             print(")")
 
         # pct
+        # The percentage tag tells receivers to only apply policy against email that fails the DMARC check x amount of the time. 
+        # For example, "pct=25" tells receivers to apply the "p=" policy 25% of the time against email that fails the DMARC check. 
+        # Note: The policy must be "quarantine" or "reject" for the percentage tag to be applied.
         print("Percent of mail to apply rules to: %s (%s)" %(parsed["tags"]["pct"]["explicit"], parsed["tags"]["pct"]["value"]))
 
         # sp
+        # Policy to apply to email from a sub-domain of this DMARC record that fails the DMARC check.
+        # Authorized values: "none", "quarantine", or "reject".
+        # This tag allows domain owners to explicitly publish a "wildcard" sub-domain policy.
         print("Sub-Policy: %s (%s)" %(parsed["tags"]["sp"]["explicit"], parsed["tags"]["sp"]["value"]))
 
         # fo
@@ -72,9 +91,12 @@ def process_DMARC(domain):
         print("Authentication and/or alignment vulnerabilities: %s (%s)" %(parsed["tags"]["fo"]["explicit"], parsed["tags"]["fo"]["value"][0]))
 
         # rf
+        # The reporting format for individual Forensic reports. Authorized values: “afrf”, “iodef”.
         print("Report Format: %s (%s)" %(parsed["tags"]["rf"]["explicit"], parsed["tags"]["rf"]["value"][0]))
         
         # ri
+        # The reporting interval for how often you’d like to receive aggregate XML reports.
+        # You’ll most likely receive reports once a day regardless of this setting.
         print("Seconds between agregating reports: %s (%s)" %(parsed["tags"]["ri"]["explicit"], parsed["tags"]["ri"]["value"]))
 
         # print all the dicts anyway
