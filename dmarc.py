@@ -5,7 +5,7 @@ import collections
 VERSION_INDEX = 0
 P_INDEX = 1
 
-dmarcRecord = collections.namedtuple("DMARC_Record", "location, record, v, p_explicit, p_value, rua_explicit, rua_value, ruf_explicit, ruf_defined, pct_explicit, pct_value, sp_explicit, sp_value, adkim_explicit, aspf_explicit, aspf_value, fo_explicit, fo_value, rf_explicit, rf_value, ri_explicit, ri_value")
+dmarcRecord = collections.namedtuple("DMARC_Record", "location, record, v, p_explicit, p_value, rua_explicit, rua_value, ruf_explicit, ruf_defined, pct_explicit, pct_value, sp_explicit, sp_value, adkim_explicit, adkim_value, aspf_explicit, aspf_value, fo_explicit, fo_value, rf_explicit, rf_value, ri_explicit, ri_value")
 
 # explanations stolen from https://dmarcian.com/dmarc-inspector/
 def process_DMARC(domain):
@@ -49,18 +49,19 @@ def process_DMARC(domain):
         # get ADKIM
         if "adkim" in parsed["tags"]:
             parsedRecord.adkim_explicit = parsed["tags"]["adkim"]["explicit"]
+            parsedRecord.adkim_value = parsed["tags"]["adkim"]["value"]
         else:
             parsedRecord.adkim_explicit = "Not Defined"
+            parsedRecord.adkim_value = "Not Defined"
         
         # Get ASPF
         # Specifies “Alignment Mode” for SPF.
         # Authorized values: “r”, “s”. “r”, or “Relaxed Mode” allows SPF Authenticated domains that share a common Organizational Domain with an email’s “header-From:” domain to pass the DMARC check. “s”, or “Strict Mode” requires exact matching between the SPF domain and an email’s “header-From:” domain.
-        parsedRecord.aspf_explicit = parsed["tags"]["aspf"]["explicit"]
-        
         if "aspf" in parsed["tags"]:
+            parsedRecord.aspf_explicit = parsed["tags"]["aspf"]["explicit"]
             parsedRecord.aspf_value = parsed["tags"]["aspf"]["value"]
-            
         else:
+            parsedRecord.aspf_explicit = "Not Defined"
             parsedRecord.aspf_value = "Not Defined"
         
 
@@ -73,8 +74,6 @@ def process_DMARC(domain):
 
             for entry in parsed["tags"]["rua"]["value"]:
                 parsedRecord.rua_value = parsedRecord.rua_value + "Address: " + entry["address"] + ", scheme: " + entry["scheme"]
-            
-            parsedRecord.rua_value = parsedRecord.rua_value
         else:
             parsedRecord.rua_explicit = "Not Defined"
             parsedRecord.rua_value = "Not Defined"
@@ -83,13 +82,11 @@ def process_DMARC(domain):
         # The list of URIs for receivers to send Forensic reports to.
         # Note: This is not a list of email addresses, as DMARC requires a list of URIs of the form “mailto:address@example.org”.
         if "ruf" in parsed["tags"]:
-
             parsedRecord.ruf_explicit = parsed["tags"]["ruf"]["explicit"]
             parsedRecord.ruf_value = ""
 
             for entry in parsed["tags"]["ruf"]["value"]:
                 parsedRecord.ruf_value = parsedRecord.ruf_value + "Address: %s, scheme: %s" % (entry["address"], entry["scheme"])
-        
         else:
             parsedRecord.ruf_explicit = "Not Defined"
             parsedRecord.ruf_value = "Not Defined"
@@ -130,17 +127,17 @@ def process_DMARC(domain):
         parsedRecord.ri_explicit = parsed["tags"]["ri"]["explicit"]
         parsedRecord.ri_value = parsed["tags"]["ri"]["value"]
 
-        print(tabulate([["Location", parsedRecord.location], ["Raw Record", parsedRecord.record]], 
+        print(tabulate([["Location", parsedRecord.location], 
+        ["Version", parsedRecord.version], 
+        ["Raw Record", parsedRecord.record]],
         headers=["Field", "Value"]))
 
         print()
 
         print(tabulate([
-        ["v", "Version", parsedRecord.version, ""],
         ["p", "Requested Mail Receiver Policy", parsedRecord.p_explicit, parsedRecord.p_value],
-        ["adkim", "Explicit alignment mode for DKIM", parsedRecord.adkim_explicit, ""],
-        ["aspf", "Explicit alignment mode for SPF", parsedRecord.aspf_explicit, ""],
-        ["aspf", "ASPF Value", parsedRecord.aspf_value, ""],
+        ["adkim", "Explicit alignment mode for DKIM", parsedRecord.adkim_explicit, parsedRecord.adkim_value],
+        ["aspf", "Explicit alignment mode for SPF", parsedRecord.aspf_explicit, parsedRecord.aspf_value],
         ["rua", "Aggregate Report Mailbox", parsedRecord.rua_explicit, parsedRecord.rua_value],
         ["ruf", "Forensic Report Mailbox", parsedRecord.ruf_explicit, parsedRecord.ruf_value],
         ["pc", "Percent of mail to apply rules to", parsedRecord.pct_explicit, parsedRecord.pct_value],
@@ -148,7 +145,7 @@ def process_DMARC(domain):
         ["fo", "Authentication and/or alignment vulnerabilities", parsedRecord.fo_explicit, parsedRecord.fo_value],
         ["rf", "Report Format", parsedRecord.rf_explicit, parsedRecord.rf_value],
         ["ri", "Seconds between agregating reports", parsedRecord.ri_explicit, parsedRecord.ri_value]
-        ], headers=["Key", "Field", "Setting", "Value"]))
+        ], headers=["Key", "Field", "Set", "Value"]))
 
         print()
 
@@ -158,7 +155,7 @@ def process_DMARC(domain):
 
 # check the order of the version and p fields
 def check_DMARC_order(record):
-    # v=DMARC1; rua=mailto:55d7175f07@rep.dmarcanalyzer.com; p=none; pct=100; sp=none; adkim=r; aspf=r;
+    # e.g.: v=DMARC1; rua=mailto:55d7175f07@rep.dmarcanalyzer.com; p=none; pct=100; sp=none; adkim=r; aspf=r;
     
     # strip spaces out
     record = record.replace(" ", "")
