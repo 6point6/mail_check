@@ -17,15 +17,12 @@ def process_DMARC(domain):
         dmarc = checkdmarc.get_dmarc_record(domain, timeout=10.0, nameservers=["8.8.8.8", "1.1.1.1"])
         parsedRecord = dmarcRecord
         
-        #print(dmarc)
-
-        # print headings
-               
+        #print(dmarc)  
 
         check_DMARC_order(dmarc["record"])
 
         # print details
-        print("\nDMARC Record:")
+        print("\nDMARC Record:\n")
 
         # location
         parsedRecord.location = dmarc["location"]
@@ -130,20 +127,19 @@ def process_DMARC(domain):
         parsedRecord.ri_explicit = parsed["tags"]["ri"]["explicit"]
         parsedRecord.ri_value = parsed["tags"]["ri"]["value"]
 
-        print("Raw Record: \t%s" % parsedRecord.record)
-        print("Location: \t%s" % parsedRecord.location)
-        print("Version: \t%s" % parsedRecord.version)
-        print("Requested Mail Receiver Policy: %s (%s)" % (parsedRecord.p_explicit, parsedRecord.p_value))
-        print("Explicit alignment mode for DKIM: \t%s" % parsedRecord.adkim_explicit)
-        print("Explicit alignment mode for SPF: \t%s" % parsedRecord.aspf_explicit)
-        print("ASPF Value:\t%s" % parsedRecord.aspf_value)
-        print("Aggregate Report Mailbox (RUA): %s (%s)" % (parsedRecord.rua_explicit, parsedRecord.rua_value))
-        print("Forensic Report Mailbox (RUF): %s (%s)" % (parsedRecord.ruf_explicit, parsedRecord.ruf_value))
-        print("Percent of mail to apply rules to: %s (%s)" % (parsedRecord.pct_explicit, parsedRecord.pct_value))
-        print("Sub-Policy: %s (%s)" %(parsedRecord.sp_explicit, parsedRecord.sp_value))
-        print("Authentication and/or alignment vulnerabilities: %s (%s)" % (parsedRecord.fo_explicit, parsedRecord.fo_value))
-        print("Report Format: %s (%s)" % (parsedRecord.rf_explicit, parsedRecord.rf_value))
-        print("Seconds between agregating reports: %s (%s)" % (parsedRecord.ri_explicit, parsedRecord.ri_value))
+        print(tabulate([["Raw Record", parsedRecord.record], ["Location", parsedRecord.location], ["Version", parsedRecord.version],
+        ["Requested Mail Receiver Policy", "{} ({})".format(parsedRecord.p_explicit, parsedRecord.p_value)],
+        ["Explicit alignment mode for DKIM", parsedRecord.adkim_explicit],
+        ["Explicit alignment mode for SPF", parsedRecord.aspf_explicit],
+        ["ASPF Value", parsedRecord.aspf_value],
+        ["Aggregate Report Mailbox (RUA)", "{} ({})".format(parsedRecord.rua_explicit, parsedRecord.rua_value)],
+        ["Forensic Report Mailbox (RUF)", "{} ({})".format(parsedRecord.ruf_explicit, parsedRecord.ruf_value)],
+        ["Percent of mail to apply rules to", "{} ({})".format(parsedRecord.pct_explicit, parsedRecord.pct_value)],
+        ["Sub-Policy", "{} ({})".format(parsedRecord.sp_explicit, parsedRecord.sp_value)],
+        ["Authentication and/or alignment vulnerabilities", "{} ({})".format(parsedRecord.fo_explicit, parsedRecord.fo_value)],
+        ["Report Format", "{} ({})".format(parsedRecord.rf_explicit, parsedRecord.rf_value)],
+        ["Seconds between agregating reports", "{} ({})".format(parsedRecord.ri_explicit, parsedRecord.ri_value)]
+        ], headers=["Field", "Value"]))
 
         print()
 
