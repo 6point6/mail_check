@@ -65,8 +65,7 @@ def check_SPF(pure_domain):
 
         # TODO parse this
     except Exception as e:
-            print('Error with ' + domain)
-            print(e)
+            print('Error with processing record for %s: \"%s\"' % (domain, e))
     
     print("\n")
 
