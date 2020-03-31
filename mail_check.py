@@ -2,6 +2,8 @@
 # For more info see https://dmarc.org/overview/, https://tools.ietf.org/html/rfc4408, https://tools.ietf.org/html/rfc6376
 import os, sys
 import checkdmarc
+import argparse
+
 from dmarc import process_DMARC, check_DMARC_order
 
 
@@ -70,18 +72,22 @@ def check_SPF(pure_domain):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) is not 2:
-        print("Usage: python3 mail_check.py domain")
-        sys.exit(-1)
-    
+    parser = argparse.ArgumentParser(description='Mail record checking utility')
+
+    parser.add_argument('-d', type=str, help='The domain record to test')
+    parser.add_argument('-f', action='store_true', help='Run all tests')
+    args = parser.parse_args()
+
     # check domain
-    domain = sys.argv[1]
+    domain = args.d
     pure_domain = checkdmarc.get_base_domain(domain)
     print("Pure domain = \"%s\"\n" % pure_domain)
 
     # run tests
-    #get_hosts(pure_domain)
     process_DMARC(pure_domain)
-    #check_domain(pure_domain)
-    #check_SPF(pure_domain)
+
+    if args.f:
+        get_hosts(pure_domain)
+        check_domain(pure_domain)
+        check_SPF(pure_domain)
     
