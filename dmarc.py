@@ -48,12 +48,12 @@ def process_DMARC(domain):
         # Authorized values: “r”, “s”. “r”, or “Relaxed Mode” allows SPF Authenticated domains that share a common Organizational Domain with an email’s “header-From:” domain to pass the DMARC check. “s”, or “Strict Mode” requires exact matching between the SPF domain and an email’s “header-From:” domain.
         print("Explicit alignment mode for SPF: \t%s" % parsed["tags"]["aspf"]["explicit"])
         if parsed["tags"]["aspf"]["explicit"] is True:
-            print("SPF Value: \t%s" % parsed["tags"]["aspf"]["value"])
+            print("ASPF Value: \t%s" % parsed["tags"]["aspf"]["value"])
 
         # rua
         # The list of URIs for receivers to send XML feedback to.
         # Note: This is not a list of email addresses, as DMARC requires a list of URIs of the form “mailto:address@example.org”.
-        if parsed["tags"]["ruf"] is not None:
+        if parsed["tags"]["rua"] is not None:
             print("Aggregate Report Mailbox (RUA): %s (" % parsed["tags"]["rua"]["explicit"], end="")
 
             for entry in parsed["tags"]["rua"]["value"]:
@@ -61,6 +61,7 @@ def process_DMARC(domain):
             
             print(")")
 
+        # ruf
         # The list of URIs for receivers to send Forensic reports to.
         # Note: This is not a list of email addresses, as DMARC requires a list of URIs of the form “mailto:address@example.org”.
         if parsed["tags"]["ruf"] is not None:
@@ -111,6 +112,7 @@ def process_DMARC(domain):
         print(e)
 
 
+# check the order of the version and p fields
 def check_DMARC_order(record):
     # v=DMARC1; rua=mailto:55d7175f07@rep.dmarcanalyzer.com; p=none; pct=100; sp=none; adkim=r; aspf=r;
     # trim spaces
@@ -123,15 +125,15 @@ def check_DMARC_order(record):
 
     # version should be first
     if not entries[VERSION_INDEX][0:2] == "v=":
-        print("Problem found: first entry should be version")
+        print("Problem found: first entry should be version\n")
     else:
         # should be v1    
         if not entries[VERSION_INDEX] == "v=DMARC1":
-            print("Problem found: unknown version \"%s\"" % entries[VERSION_INDEX][2:])
+            print("Problem found: unknown version \"%s\"\n" % entries[VERSION_INDEX][2:])
 
     # p should be second
     if not entries[P_INDEX][0:2] == "p=":
-        print("Problem found: second entry should be 'p'")
+        print("Problem found: second entry should be 'p', currently set to \"%s\"\n" % entries[P_INDEX])
 
         # find p
         for entry in entries:
@@ -141,6 +143,7 @@ def check_DMARC_order(record):
         check_p_value(entries[P_INDEX][2:])
 
 
+# check the policy value
 def check_p_value(p_value):
     if p_value == "none":
         # stolen from https://dmarcian.com/dmarc-inspector/
