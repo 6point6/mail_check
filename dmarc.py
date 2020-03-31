@@ -1,7 +1,11 @@
 import checkdmarc
+from tabulate import tabulate
+import collections
 
 VERSION_INDEX = 0
 P_INDEX = 1
+
+dmarcRecord = collections.namedtuple("DMARC_Record", "location, record, v, p_explicit, p_value, rua_explicit, rua_value, ruf_explicit, ruf_defined, pct_explicit, pct_value, sp_explicit, sp_value, adkim_explicit, aspf_explicit, aspf_value, fo_explicit, fo_value, rf_explicit, rf_value, ri_explicit, ri_value")
 
 # explanations stolen from https://dmarcian.com/dmarc-inspector/
 def process_DMARC(domain):
@@ -11,8 +15,12 @@ def process_DMARC(domain):
     
     try:
         dmarc = checkdmarc.get_dmarc_record(domain, timeout=10.0, nameservers=["8.8.8.8", "1.1.1.1"])
+        parsedRecord = dmarcRecord
         
         #print(dmarc)
+
+        # print headings
+               
 
         check_DMARC_order(dmarc["record"])
 
@@ -20,10 +28,10 @@ def process_DMARC(domain):
         print("\nDMARC Record:")
 
         # location
-        print("Location: \t%s" % dmarc["location"])
+        parsedRecord.location = dmarc["location"]
 
         # record
-        print("Raw Record: \t%s" % dmarc["record"])
+        parsedRecord.record = dmarc["record"]
 
         # parsed
         parsed = dmarc["parsed"]
@@ -31,91 +39,123 @@ def process_DMARC(domain):
         # version
         # The DMARC version should always be "DMARC1".
         # Note: A wrong, or absent DMARC version tag would cause the entire record to be ignored
-        print("Version: \t%s" % parsed["tags"]["v"]["value"])
+        parsedRecord.version = parsed["tags"]["v"]["value"]
 
         # p
         # Policy applied to emails that fails the DMARC check. Authorized values: "none", "quarantine", or "reject". 
         # "none" is used to collect feedback and gain visibility into email streams without impacting existing flows. 
         # "quarantine" allows Mail Receivers to treat email that fails the DMARC check as suspicious. Most of the time, they will end up in your SPAM folder. 
         # "reject" outright rejects all emails that fail the DMARC check.
-        print("Requested Mail Receiver Policy: %s (%s)" % (parsed["tags"]["p"]["explicit"], parsed["tags"]["p"]["value"]))
+        parsedRecord.p_explicit = parsed["tags"]["p"]["explicit"]
+        parsedRecord.p_value = parsed["tags"]["p"]["value"]
 
-        # get DKIM
-        print("Explicit alignment mode for DKIM: \t%s" % parsed["tags"]["adkim"]["explicit"])
+        # get ADKIM
+        if "adkim" in parsed["tags"]:
+            parsedRecord.adkim_explicit = parsed["tags"]["adkim"]["explicit"]
+        else:
+            parsedRecord.adkim_explicit = "Not Defined"
         
         # Get ASPF
         # Specifies “Alignment Mode” for SPF.
         # Authorized values: “r”, “s”. “r”, or “Relaxed Mode” allows SPF Authenticated domains that share a common Organizational Domain with an email’s “header-From:” domain to pass the DMARC check. “s”, or “Strict Mode” requires exact matching between the SPF domain and an email’s “header-From:” domain.
-        print("Explicit alignment mode for SPF: \t%s" % parsed["tags"]["aspf"]["explicit"])
-        if parsed["tags"]["aspf"]["explicit"] is True:
-            print("ASPF Value: \t%s" % parsed["tags"]["aspf"]["value"])
+        parsedRecord.aspf_explicit = parsed["tags"]["aspf"]["explicit"]
+        
+        if "aspf" in parsed["tags"]:
+            parsedRecord.aspf_value = parsed["tags"]["aspf"]["value"]
+            
+        else:
+            parsedRecord.aspf_value = "Not Defined"
+        
 
         # rua
         # The list of URIs for receivers to send XML feedback to.
         # Note: This is not a list of email addresses, as DMARC requires a list of URIs of the form “mailto:address@example.org”.
-        if parsed["tags"]["rua"] is not None:
-            print("Aggregate Report Mailbox (RUA): %s (" % parsed["tags"]["rua"]["explicit"], end="")
+        if "rua" in parsed["tags"]:
+            parsedRecord.rua_explicit = parsed["tags"]["rua"]["explicit"]
+            parsedRecord.rua_value = ""
 
             for entry in parsed["tags"]["rua"]["value"]:
-                print("Address: %s, scheme: %s" % (entry["address"], entry["scheme"]), end="")
+                parsedRecord.rua_value = parsedRecord.rua_value + "Address: " + entry["address"] + ", scheme: " + entry["scheme"]
             
-            print(")")
+            parsedRecord.rua_value = parsedRecord.rua_value + ")"
+        else:
+            parsedRecord.rua_explicit = "Not Defined"
+            parsedRecord.rua_value = "Not Defined"
 
         # ruf
         # The list of URIs for receivers to send Forensic reports to.
         # Note: This is not a list of email addresses, as DMARC requires a list of URIs of the form “mailto:address@example.org”.
-        if parsed["tags"]["ruf"] is not None:
-            print("Forensic Report Mailbox (RUF): %s (" % parsed["tags"]["ruf"]["explicit"], end="")
+        if "ruf" in parsed["tags"]:
+
+            parsedRecord.ruf_explicit = parsed["tags"]["ruf"]["explicit"]
+            parsedRecord.ruf_value = ""
 
             for entry in parsed["tags"]["ruf"]["value"]:
-                print("Address: %s, scheme: %s" % (entry["address"], entry["scheme"]), end="")
+                parsedRecord.ruf_value = parsedRecord.ruf_value + "Address: %s, scheme: %s" % (entry["address"], entry["scheme"])
         
-            print(")")
+        else:
+            parsedRecord.ruf_explicit = "Not Defined"
+            parsedRecord.ruf_value = "Not Defined"
 
         # pct
         # The percentage tag tells receivers to only apply policy against email that fails the DMARC check x amount of the time. 
         # For example, "pct=25" tells receivers to apply the "p=" policy 25% of the time against email that fails the DMARC check. 
         # Note: The policy must be "quarantine" or "reject" for the percentage tag to be applied.
-        print("Percent of mail to apply rules to: %s (%s)" %(parsed["tags"]["pct"]["explicit"], parsed["tags"]["pct"]["value"]))
+        parsedRecord.pct_explicit = parsed["tags"]["pct"]["explicit"]
+        parsedRecord.pct_value = parsed["tags"]["pct"]["value"]
 
         # sp
         # Policy to apply to email from a sub-domain of this DMARC record that fails the DMARC check.
         # Authorized values: "none", "quarantine", or "reject".
         # This tag allows domain owners to explicitly publish a "wildcard" sub-domain policy.
-        print("Sub-Policy: %s (%s)" %(parsed["tags"]["sp"]["explicit"], parsed["tags"]["sp"]["value"]))
+        parsedRecord.sp_explicit = parsed["tags"]["sp"]["explicit"]
+        parsedRecord.sp_value = parsed["tags"]["sp"]["value"]
 
         # fo
         # 0: Generate a DMARC failure report if all underlying authentication mechanisms fail to produce an aligned “pass” result. (Default)
         # 1: Generate a DMARC failure report if any underlying authentication mechanism produced something other than an aligned “pass” result.
         # d: Generate a DKIM failure report if the message had a signature that failed evaluation, regardless of its alignment.
         # s: Generate an SPF failure report if the message failed SPF evaluation, regardless of its alignment.
-        print("Authentication and/or alignment vulnerabilities: %s (%s)" %(parsed["tags"]["fo"]["explicit"], parsed["tags"]["fo"]["value"][0]))
+        parsedRecord.fo_explicit = parsed["tags"]["fo"]["explicit"]
+        parsedRecord.fo_value = parsed["tags"]["fo"]["value"][0]
 
         # rf
         # The reporting format for individual Forensic reports. Authorized values: “afrf”, “iodef”.
-        print("Report Format: %s (%s)" %(parsed["tags"]["rf"]["explicit"], parsed["tags"]["rf"]["value"][0]))
+        parsedRecord.rf_explicit = parsed["tags"]["rf"]["explicit"]
+        parsedRecord.rf_value = parsed["tags"]["rf"]["value"][0]
         
         # ri
         # The reporting interval for how often you’d like to receive aggregate XML reports.
         # You’ll most likely receive reports once a day regardless of this setting.
-        print("Seconds between agregating reports: %s (%s)" %(parsed["tags"]["ri"]["explicit"], parsed["tags"]["ri"]["value"]))
+        parsedRecord.ri_explicit = parsed["tags"]["ri"]["explicit"]
+        parsedRecord.ri_value = parsed["tags"]["ri"]["value"]
 
-        # print all the dicts anyway
-        #print("\nAll data:")
-        #for key in parsed["tags"]:
-           #print("%s: %s" % (key, parsed["tags"][key]))
-        
+        print("Raw Record: \t%s" % parsedRecord.record)
+        print("Location: \t%s" % parsedRecord.location)
+        print("Version: \t%s" % parsedRecord.version)
+        print("Requested Mail Receiver Policy: %s (%s)" % (parsedRecord.p_explicit, parsedRecord.p_value))
+        print("Explicit alignment mode for DKIM: \t%s" % parsedRecord.adkim_explicit)
+        print("Explicit alignment mode for SPF: \t%s" % parsedRecord.aspf_explicit)
+        print("ASPF Value:\t%s" % parsedRecord.aspf_value)
+        print("Aggregate Report Mailbox (RUA): %s (%s)" % (parsedRecord.rua_explicit, parsedRecord.rua_value))
+        print("Forensic Report Mailbox (RUF): %s (%s)" % (parsedRecord.ruf_explicit, parsedRecord.ruf_value))
+        print("Percent of mail to apply rules to: %s (%s)" % (parsedRecord.pct_explicit, parsedRecord.pct_value))
+        print("Sub-Policy: %s (%s)" %(parsedRecord.sp_explicit, parsedRecord.sp_value))
+        print("Authentication and/or alignment vulnerabilities: %s (%s)" % (parsedRecord.fo_explicit, parsedRecord.fo_value))
+        print("Report Format: %s (%s)" % (parsedRecord.rf_explicit, parsedRecord.rf_value))
+        print("Seconds between agregating reports: %s (%s)" % (parsedRecord.ri_explicit, parsedRecord.ri_value))
+
         print()
 
     except Exception as e:
-        print('Error with ' + domain)
-        print(e)
+        print('Error with processing record for %s: %s' % (domain, e))
 
 
 # check the order of the version and p fields
 def check_DMARC_order(record):
     # v=DMARC1; rua=mailto:55d7175f07@rep.dmarcanalyzer.com; p=none; pct=100; sp=none; adkim=r; aspf=r;
-    # trim spaces
+    
+    # strip spaces out
     record = record.replace(" ", "")
     
     # split the entries
