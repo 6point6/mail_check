@@ -7,7 +7,7 @@ P_INDEX = 1
 
 dmarcRecord = collections.namedtuple("DMARC_Record", "location, record, v, p_explicit, p_value, rua_explicit, rua_value, ruf_explicit, ruf_defined, pct_explicit, pct_value, sp_explicit, sp_value, adkim_explicit, adkim_value, aspf_explicit, aspf_value, fo_explicit, fo_value, rf_explicit, rf_value, ri_explicit, ri_value")
 
-# explanations stolen from https://dmarcian.com/dmarc-inspector/
+# explanations stolen from https://dmarcian.com/dmarc-inspector/ and https://www.validity.com/blog/demystifying-the-dmarc-record/
 def process_DMARC(domain):
     print("==== DMARC ====")
 
@@ -20,9 +20,6 @@ def process_DMARC(domain):
         #print(dmarc)  
 
         check_DMARC_order(dmarc["record"])
-
-        # print details
-        print("\nDMARC Record:\n")
 
         # location
         parsedRecord.location = dmarc["location"]
@@ -47,6 +44,7 @@ def process_DMARC(domain):
         parsedRecord.p_value = parsed["tags"]["p"]["value"]
 
         # get ADKIM
+        # 
         if "adkim" in parsed["tags"]:
             parsedRecord.adkim_explicit = parsed["tags"]["adkim"]["explicit"]
             parsedRecord.adkim_value = parsed["tags"]["adkim"]["value"]
@@ -73,7 +71,7 @@ def process_DMARC(domain):
             parsedRecord.rua_value = ""
 
             for entry in parsed["tags"]["rua"]["value"]:
-                parsedRecord.rua_value = parsedRecord.rua_value + "Address: " + entry["address"] + ", scheme: " + entry["scheme"]
+                parsedRecord.rua_value = parsedRecord.rua_value + "Address: " + entry["address"] + ",\nscheme: " + entry["scheme"]
         else:
             parsedRecord.rua_explicit = "Not Defined"
             parsedRecord.rua_value = "Not Defined"
@@ -130,22 +128,22 @@ def process_DMARC(domain):
         print(tabulate([["Location", parsedRecord.location], 
         ["Version", parsedRecord.version], 
         ["Raw Record", parsedRecord.record]],
-        headers=["Field", "Value"]))
+        headers=["Field", "Value"], colalign=("left",)))
 
-        print()
+        print("\nFields:\n")
 
         print(tabulate([
-        ["p", "Requested Mail Receiver Policy", parsedRecord.p_explicit, parsedRecord.p_value],
-        ["adkim", "Explicit alignment mode for DKIM", parsedRecord.adkim_explicit, parsedRecord.adkim_value],
-        ["aspf", "Explicit alignment mode for SPF", parsedRecord.aspf_explicit, parsedRecord.aspf_value],
-        ["rua", "Aggregate Report Mailbox", parsedRecord.rua_explicit, parsedRecord.rua_value],
-        ["ruf", "Forensic Report Mailbox", parsedRecord.ruf_explicit, parsedRecord.ruf_value],
-        ["pc", "Percent of mail to apply rules to", parsedRecord.pct_explicit, parsedRecord.pct_value],
-        ["sp", "Sub-Policy", parsedRecord.sp_explicit, parsedRecord.sp_value],
-        ["fo", "Authentication and/or alignment vulnerabilities", parsedRecord.fo_explicit, parsedRecord.fo_value],
-        ["rf", "Report Format", parsedRecord.rf_explicit, parsedRecord.rf_value],
-        ["ri", "Seconds between agregating reports", parsedRecord.ri_explicit, parsedRecord.ri_value]
-        ], headers=["Key", "Field", "Set", "Value"]))
+        ["p", parsedRecord.p_explicit, parsedRecord.p_value, get_policy_words(parsedRecord.p_value)],
+        ["adkim", parsedRecord.adkim_explicit, parsedRecord.adkim_value, get_alignment_words(parsedRecord.adkim_value)],
+        ["aspf", parsedRecord.aspf_explicit, parsedRecord.aspf_value, get_alignment_words(parsedRecord.aspf_value)],
+        ["rua", parsedRecord.rua_explicit, parsedRecord.rua_value, "Indicates where aggregate DMARC reports should be sent to."],
+        ["ruf", parsedRecord.ruf_explicit, parsedRecord.ruf_value, "Indicates where forensic DMARC reports should be sent to."],
+        ["pc", parsedRecord.pct_explicit, parsedRecord.pct_value, "Percentage of messages to which the DMARC policy is to be applied.\nThis parameter provides a way to gradually\nimplement and test the impact of the policy."],
+        ["sp", parsedRecord.sp_explicit, parsedRecord.sp_value, get_sp_policy_words(parsedRecord.sp_value)],
+        ["fo", parsedRecord.fo_explicit, parsedRecord.fo_value, get_fo_words(parsedRecord.fo_value)],
+        ["rf", parsedRecord.rf_explicit, parsedRecord.rf_value, "The reporting format for individual Forensic reports.\nAuthorized values: “afrf”, “iodef”."],
+        ["ri", parsedRecord.ri_explicit, parsedRecord.ri_value, "The number of seconds elapsed between\nsending aggregate reports to the sender.\nThe default value is 86,400 seconds or a day."]
+        ], headers=["Key", "Set", "Value", "Comment"], colalign=("left",)))
 
         print()
 
@@ -175,7 +173,7 @@ def check_DMARC_order(record):
 
     # p should be second
     if not entries[P_INDEX][0:2] == "p=":
-        print("Problem found: second entry should be 'p', currently set to \"%s\"\n" % entries[P_INDEX])
+        print("Problem found: second entry should be 'p',currently set to \"%s\"\n" % entries[P_INDEX])
 
         # find p
         for entry in entries:
@@ -192,6 +190,52 @@ def check_p_value(p_value):
         print("Problem found: DMARC record \"p\" tag is set to \"none\", which does not prevent abuse on your domain. If you are satisfied with the authentication success of your sending sources, move your policy to a 'p=quarantine' or 'p=reject'.")
     elif p_value != "quarantine" and p_value != "reject":
         print("Problem found: 'p' should be set to 'none', 'quarantine' or 'reject'")
+
+
+# Get a text explanation of the policy value
+def get_policy_words(p_value):
+    if p_value == "none":
+        return "No specific action be taken on mail\nthat fails DMARC authentication and alignment."
+    elif p_value == "quarantine":
+        return "Mail failing the DMARC authentication and alignment\nchecks be treated as suspicious by mail receivers.\nThis can mean receivers place the email in the spam/junk folder,\n flag as it suspicious \nor scrutinize this mail with extra intensity."
+    elif p_value == "reject":
+        return "Reject the email that fails \nthe DMARC authentication and alignment checks.\n Rejection should occur during the SMTP transaction.\nThis is the most strict policy and\noffers the highest level of protection."
+    else:
+        return "Unknown"
+
+
+# Get a text explanation of the policy value
+def get_sp_policy_words(p_value):
+    if p_value == "none":
+        return "(Sub-Domains) No specific action be taken on mail\nthat fails DMARC authentication and alignment."
+    elif p_value == "quarantine":
+        return "(Sub-Domains) Mail failing the DMARC authentication and alignment\nchecks be treated as suspicious by mail receivers.\nThis can mean receivers place the email in the spam/junk folder,\nflag as it suspicious\nor scrutinize this mail with extra intensity."
+    elif p_value == "reject":
+        return "(Sub-Domains) Reject the email that fails \nthe DMARC authentication and alignment checks.\nRejection should occur during the SMTP transaction.\nThis is the most strict policy and\noffers the highest level of protection."
+    else:
+        return "Unknown"
+
+
+#
+def get_fo_words(fo_value):
+    if fo_value == "0":
+        return "Generate a DMARC failure report if all\nunderlying authentication mechanisms\nfail to produce an aligned “pass” result. (Default)"
+    elif fo_value == "1":
+        return "Generate a DMARC failure report if any\n underlying authentication mechanism\nproduced something other than\nan aligned “pass” result."
+    elif fo_value == "d":
+        return "Generate a DKIM failure report if the\nmessage had a signature that\n failed evaluation, regardless\nof its alignment."
+    elif fo_value == "s":
+        return "Generate an SPF failure report\n if the message failed SPF evaluation,\nregardless of its alignment."
+    else:
+        return "Unknown"
+
+
+def get_alignment_words(value):
+    if value == "r":
+        return "Relaxed Mode allows Authenticated DKIM/SPF domains\nthat share a common Organizational Domain\nwith an email's \"header-From:\"\ndomain to pass the DMARC check."
+    elif value == "s":
+        return "Strict Mode requires exact matching between\nthe DKIM/SPF d= domain and an email's \"header-From:\" domain."
+
 
 
 
