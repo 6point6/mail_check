@@ -9,7 +9,7 @@ dmarcRecord = collections.namedtuple("DMARC_Record", "location, record, v, p_exp
 
 # explanations stolen from https://dmarcian.com/dmarc-inspector/ and https://www.validity.com/blog/demystifying-the-dmarc-record/
 def process_DMARC(domain):
-    print("==== DMARC ====")
+    print("\n==== DMARC ====")
 
     dmarc = {}
     
@@ -84,7 +84,7 @@ def process_DMARC(domain):
             parsedRecord.ruf_value = ""
 
             for entry in parsed["tags"]["ruf"]["value"]:
-                parsedRecord.ruf_value = parsedRecord.ruf_value + "Address: %s, scheme: %s" % (entry["address"], entry["scheme"])
+                parsedRecord.ruf_value = parsedRecord.ruf_value + "Address: %s,\nscheme: %s" % (entry["address"], entry["scheme"])
         else:
             parsedRecord.ruf_explicit = "Not Defined"
             parsedRecord.ruf_value = "Not Defined"
@@ -125,11 +125,13 @@ def process_DMARC(domain):
         parsedRecord.ri_explicit = parsed["tags"]["ri"]["explicit"]
         parsedRecord.ri_value = parsed["tags"]["ri"]["value"]
 
+        # print the whole record in a table
         print(tabulate([["Location", parsedRecord.location], 
         ["Version", parsedRecord.version], 
         ["Raw Record", parsedRecord.record]],
         headers=["Field", "Value"], colalign=("left",)))
 
+        # Print the annotated fields in a table
         print("\nFields:\n")
 
         print(tabulate([
@@ -138,7 +140,7 @@ def process_DMARC(domain):
         ["aspf", parsedRecord.aspf_explicit, parsedRecord.aspf_value, get_alignment_words(parsedRecord.aspf_value)],
         ["rua", parsedRecord.rua_explicit, parsedRecord.rua_value, "Indicates where aggregate DMARC reports should be sent to."],
         ["ruf", parsedRecord.ruf_explicit, parsedRecord.ruf_value, "Indicates where forensic DMARC reports should be sent to."],
-        ["pc", parsedRecord.pct_explicit, parsedRecord.pct_value, "Percentage of messages to which the DMARC policy is to be applied.\nThis parameter provides a way to gradually\nimplement and test the impact of the policy."],
+        ["pc", parsedRecord.pct_explicit, parsedRecord.pct_value, "Percentage of messages to which the\nDMARC policy is to be applied.\nThis parameter provides a way to gradually\nimplement and test the impact of the policy."],
         ["sp", parsedRecord.sp_explicit, parsedRecord.sp_value, get_sp_policy_words(parsedRecord.sp_value)],
         ["fo", parsedRecord.fo_explicit, parsedRecord.fo_value, get_fo_words(parsedRecord.fo_value)],
         ["rf", parsedRecord.rf_explicit, parsedRecord.rf_value, "The reporting format for individual Forensic reports.\nAuthorized values: “afrf”, “iodef”."],
@@ -195,11 +197,11 @@ def check_p_value(p_value):
 # Get a text explanation of the policy value
 def get_policy_words(p_value):
     if p_value == "none":
-        return "No specific action be taken on mail\nthat fails DMARC authentication and alignment."
+        return "No specific action be taken on mail that fails\nDMARC authentication and alignment."
     elif p_value == "quarantine":
-        return "Mail failing the DMARC authentication and alignment\nchecks be treated as suspicious by mail receivers.\nThis can mean receivers place the email in the spam/junk folder,\n flag as it suspicious \nor scrutinize this mail with extra intensity."
+        return "Mail failing the DMARC authentication and alignment\nchecks be treated as suspicious by mail receivers.\nThis can mean receivers place the email in the spam/junk folder,\nflag as it suspicious\nor scrutinize this mail with extra intensity."
     elif p_value == "reject":
-        return "Reject the email that fails \nthe DMARC authentication and alignment checks.\n Rejection should occur during the SMTP transaction.\nThis is the most strict policy and\noffers the highest level of protection."
+        return "Reject the email that fails the DMARC\nauthentication and alignment checks.\nRejection should occur during the SMTP transaction.\nThis is the most strict policy and\noffers the highest level of protection."
     else:
         return "Unknown"
 
@@ -221,11 +223,11 @@ def get_fo_words(fo_value):
     if fo_value == "0":
         return "Generate a DMARC failure report if all\nunderlying authentication mechanisms\nfail to produce an aligned “pass” result. (Default)"
     elif fo_value == "1":
-        return "Generate a DMARC failure report if any\n underlying authentication mechanism\nproduced something other than\nan aligned “pass” result."
+        return "Generate a DMARC failure report if any\nunderlying authentication mechanism\nproduced something other than\nan aligned “pass” result."
     elif fo_value == "d":
-        return "Generate a DKIM failure report if the\nmessage had a signature that\n failed evaluation, regardless\nof its alignment."
+        return "Generate a DKIM failure report if the\nmessage had a signature that\nfailed evaluation, regardless\nof its alignment."
     elif fo_value == "s":
-        return "Generate an SPF failure report\n if the message failed SPF evaluation,\nregardless of its alignment."
+        return "Generate an SPF failure report\nif the message failed SPF evaluation,\nregardless of its alignment."
     else:
         return "Unknown"
 

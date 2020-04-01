@@ -5,10 +5,11 @@ import checkdmarc
 import argparse
 
 from dmarc import process_DMARC, check_DMARC_order
+from spf import parse_SPF
 
 
 # TODO fix this
-def check_domain(domain):
+def get_domains(domain):
     print("==== Domains ====")
     dmarc = {}
     
@@ -26,6 +27,7 @@ def check_domain(domain):
     print("\n")
 
 
+# Retrieve and print all the MX host entries
 def get_hosts(domain):
     print("==== Hosts ====")
     dmarc = {}
@@ -51,14 +53,17 @@ def get_hosts(domain):
     print()
 
 
-def check_SPF(pure_domain):
+# Get the SPF record 
+def process_SPF(pure_domain):
     print("==== SPF ====")
     dmarc = {}
     
     try:
         dmarc = checkdmarc.query_spf_record(domain, timeout=10.0, nameservers=["8.8.8.8", "1.1.1.1"])
         
-        print("SPF Record: %s\n" % dmarc["record"])
+        print("Raw SPF Record: %s\n" % dmarc["record"])
+
+        parse_SPF(dmarc["record"], pure_domain)
 
         for warning in dmarc["warnings"]:
             print("Warning: \"%s\"" % warning)
@@ -86,7 +91,10 @@ if __name__ == '__main__':
     process_DMARC(pure_domain)
 
     if args.f:
-        get_hosts(pure_domain)
-        check_domain(pure_domain)
-        check_SPF(pure_domain)
+        #get_hosts(pure_domain)
+
+        # TODO re-enable this when fixed
+        #get_domains(pure_domain)
+        
+        process_SPF(pure_domain)
     
