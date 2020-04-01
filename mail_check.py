@@ -71,8 +71,6 @@ def process_SPF(pure_domain):
         # TODO parse this
     except Exception as e:
             print('Error with processing record for %s: \"%s\"' % (domain, e))
-    
-    print("\n")
 
 
 if __name__ == '__main__':
@@ -89,12 +87,12 @@ if __name__ == '__main__':
 
     # run tests
     process_DMARC(pure_domain)
+    process_SPF(pure_domain)
 
     if args.f:
-        #get_hosts(pure_domain)
-
+        get_hosts(pure_domain)
         # TODO re-enable this when fixed
         #get_domains(pure_domain)
         
-        process_SPF(pure_domain)
+        
     
