@@ -1,11 +1,11 @@
 # mail_check
-Script for checking the DNS record of a domain.
+Script for checking the DMARC, SPF parts of a domain DNS record.
 
 Uses python library checkdmarc, which works when provided with a name server. See https://github.com/domainaware/checkdmarc/blob/master/checkdmarc.py.
 
 First own the libs:
 ```
-pip3 install checkdmarc; pip3 install tabulate
+pip3 install checkdmarc tabulate
 ```
 # Running
 ```shell
@@ -68,9 +68,25 @@ rf     False        afrf                                        The reporting fo
 ri     False        86400                                       The number of seconds elapsed between
                                                                 sending aggregate reports to the sender.
                                                                 The default value is 86,400 seconds or a day.
+
+==== SPF ====
+Raw SPF Record: v=spf1 include:servers.mcsv.net include:_spf.google.com ip4:78.137.112.53 include:_spf.salesforce.com ~all
+
+Details:
+Version: v=spf1
+~all means soft fail mail that doesn't match a rule - accept but tag
+
+Included senders: 
+Known mail server "servers.mcsv.net": Mailchimp
+Known mail server "_spf.google.com": Google Mail
+IPv4 Address 78.137.112.53
+Known mail server "_spf.salesforce.com": SalesForce
+
+Excluded senders:
+
 ```
 
-The "-f" option gives full results that include host and SPF records:
+The "-f" option gives full results that include host records:
 ```shell
 > python3 ./mail_check.py -d 6point6.co.uk -f
 Pure domain = "6point6.co.uk"
@@ -117,30 +133,41 @@ ri     False        86400                                       The number of se
                                                                 sending aggregate reports to the sender.
                                                                 The default value is 86,400 seconds or a day.
 
+==== SPF ====
+Raw SPF Record: v=spf1 include:servers.mcsv.net include:_spf.google.com ip4:78.137.112.53 include:_spf.salesforce.com ~all
+
+Details:
+Version: v=spf1
+~all means soft fail mail that doesn't match a rule - accept but tag
+
+Included senders: 
+Known mail server "servers.mcsv.net": Mailchimp
+Known mail server "_spf.google.com": Google Mail
+IPv4 Address 78.137.112.53
+Known mail server "_spf.salesforce.com": SalesForce
+
+Excluded senders:
+
+
 ==== Hosts ====
 Hostname: aspmx.l.google.com, preference: 10, TLS: True, starttls: True.
-Addresses: 2a00:1450:400c:c01::1a, 74.125.133.26, 
+Addresses: 2a00:1450:400c:c03::1a, 74.125.206.27, 
 
 Hostname: alt1.aspmx.l.google.com, preference: 20, TLS: True, starttls: True.
-Addresses: 209.85.233.27, 2a00:1450:4010:c03::1a, 
+Addresses: 209.85.233.26, 2a00:1450:4010:c03::1b, 
 
 Hostname: alt2.aspmx.l.google.com, preference: 20, TLS: True, starttls: True.
 Addresses: 142.250.4.27, 2404:6800:4003:c06::1a, 
 
 Hostname: aspmx2.googlemail.com, preference: 30, TLS: True, starttls: True.
-Addresses: 209.85.233.26, 2a00:1450:4010:c03::1b, 
+Addresses: 209.85.233.27, 2a00:1450:4010:c03::1b, 
 
 Hostname: aspmx3.googlemail.com, preference: 40, TLS: True, starttls: True.
-Addresses: 142.250.4.27, 2404:6800:4003:c06::1a, 
+Addresses: 142.250.4.26, 2404:6800:4003:c06::1a, 
 
+Warning: 2a00:1450:400c:c03::1a does not have any reverse DNS (PTR) records
 Warning: 142.250.4.27 does not have any reverse DNS (PTR) records
 Warning: 2404:6800:4003:c06::1a does not have any reverse DNS (PTR) records
-Warning: 142.250.4.27 does not have any reverse DNS (PTR) records
+Warning: 142.250.4.26 does not have any reverse DNS (PTR) records
 Warning: 2404:6800:4003:c06::1a does not have any reverse DNS (PTR) records
-
-==== Domains ====
-None found
-
-==== SPF ====
-SPF Record: v=spf1 include:servers.mcsv.net include:_spf.google.com ip4:78.137.112.53 include:_spf.salesforce.com ~all
 ```
