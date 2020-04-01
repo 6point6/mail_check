@@ -21,7 +21,7 @@ optional arguments:
 ```
 
 ## Example
-Run with "-d" and the domain to do a DMARC check:
+Run with "-d" and the domain to do a DMARC and SPF check:
 ```Shell
 > python3 ./mail_check.py -d 6point6.co.uk
 Pure domain = "6point6.co.uk"
