@@ -1,4 +1,9 @@
 
+# https://docs.microsoft.com/en-us/microsoft-365/security/office-365-security/how-office-365-uses-spf-to-prevent-spoofing?view=o365-worldwide
+# https://dmarcian.com/spf-syntax-table/
+
+import checkdmarc
+
 # known sending servers
 servers = {"servers.mcsv.net": "Mailchimp", 
             "_spf.salesforce.com": "SalesForce",
@@ -29,8 +34,34 @@ servers = {"servers.mcsv.net": "Mailchimp",
             "mailcontrol.com": "Forcepoint Security Cloud",
             "spf.mandrillapp.com": "MailChimp Transactional Email",
             "spf.sitel.com": "Sitel Customer Experience Platform",
-            "kallidus-suite.com": "Kallidus Suite"}
+            "kallidus-suite.com": "Kallidus Suite",
+            "emailcc.com": "Concep B2B",
+            "mh.blackboard.com": "BlackBoard email relay",
+            "mktomail.com": "MarketTo Emailer",
+            "spf.exclaimer.net": "Exclaimer Signatures",
+            "mail.zohoanalytics.com": "Zoho Cloud Platform",
+            "spf.smtp2go.com": "SMTP2GO Email sender"}
 
+
+# Get the SPF record 
+def process_SPF(pure_domain):
+    print("==== SPF ====")
+    dmarc = {}
+    
+    try:
+        dmarc = checkdmarc.query_spf_record(pure_domain, timeout=10.0, nameservers=["8.8.8.8", "1.1.1.1"])
+        
+        print("Raw SPF Record: %s\n" % dmarc["record"])
+
+        parse_SPF(dmarc["record"], pure_domain)
+
+        for warning in dmarc["warnings"]:
+            print("Warning: \"%s\"" % warning)
+
+        # TODO parse this
+    except Exception as e:
+            print('Error with processing record for %s: \"%s\"' % (pure_domain, e))
+            
 
 # process an SPF record. See https://dmarcian.com/spf-syntax-table/
 def parse_SPF(record, domain):
@@ -38,6 +69,13 @@ def parse_SPF(record, domain):
 
     # process includes
     print("Details:")
+
+    # look for redirect first, run against that
+    for field in fields:
+        if field[:9] == "redirect=":
+            print("Following redirect to %s\n" % field[9:])
+            process_SPF(field[9:])
+            return
 
     # SPF fields
     for field in fields:
