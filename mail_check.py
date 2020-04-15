@@ -86,7 +86,7 @@ def test_domain(domain, force):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Mail record checking utility')
     parser.add_argument('-d', type=str, help='The domain record to test')
-    parser.add_argument('-l', type=str, help='File of domains to test')
+    parser.add_argument('-l', type=str, help='File of domains to test, one domain per line')
     parser.add_argument('-f', action='store_true', default=False, help='Run all tests')
     args = parser.parse_args()
 

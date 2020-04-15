@@ -9,14 +9,14 @@ pip3 install checkdmarc tabulate
 ```
 # Running
 ```shell
-> python3 ./mail_check.py -h
-usage: mail_check.py [-h] [-d D] [-f]
+usage: mail_check.py [-h] [-d D] [-l L] [-f]
 
 Mail record checking utility
 
 optional arguments:
   -h, --help  show this help message and exit
   -d D        The domain record to test
+  -l L        File of domains to test, one domain per line
   -f          Run all tests
 ```
 
