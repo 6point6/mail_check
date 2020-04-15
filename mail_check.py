@@ -55,10 +55,13 @@ def get_hosts(domain):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Mail record checking utility')
-
     parser.add_argument('-d', type=str, help='The domain record to test')
     parser.add_argument('-f', action='store_true', help='Run all tests')
     args = parser.parse_args()
+
+    if len(sys.argv) < 2:
+        parser.print_help()
+        sys.exit(-1)
 
     # check domain
     domain = args.d
