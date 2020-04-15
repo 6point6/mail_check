@@ -53,10 +53,41 @@ def get_hosts(domain):
     print()
 
 
+# read the list file, return list of domains
+def get_domain_list_from_file(input_file):
+    domains = []
+
+    with open(input_file) as f:
+        
+        lines = f.readlines()
+
+        for line in lines:
+            domain = line.strip()
+            pure_domain = checkdmarc.get_base_domain(domain)
+
+            if pure_domain not in domains:
+                domains.append(pure_domain)
+    
+    return domains
+
+
+# test a single domain
+def test_domain(domain, force):
+    # run tests
+    process_DMARC(domain)
+    process_SPF(domain)
+
+    if force:
+        get_hosts(domain)
+        # TODO re-enable this when fixed
+        #get_domains(pure_domain)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Mail record checking utility')
     parser.add_argument('-d', type=str, help='The domain record to test')
-    parser.add_argument('-f', action='store_true', help='Run all tests')
+    parser.add_argument('-l', type=str, help='File of domains to test')
+    parser.add_argument('-f', action='store_true', default=False, help='Run all tests')
     args = parser.parse_args()
 
     if len(sys.argv) < 2:
@@ -64,18 +95,38 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     # check domain
-    domain = args.d
-    pure_domain = checkdmarc.get_base_domain(domain)
-    print("Pure domain = \"%s\"\n" % pure_domain)
+    if (args.d is None and args.l is None) or (args.d is not None and args.l is not None) :
+        print("Error: Must enter either a domain or a list\n")
+        parser.print_help()
+        sys.exit(-1)
+    
+    if args.d is not None:
+        domain = args.d
+        pure_domain = checkdmarc.get_base_domain(domain)
+        print("Pure domain = \"%s\"\n" % pure_domain)
 
-    # run tests
-    process_DMARC(pure_domain)
-    process_SPF(pure_domain)
+        test_domain(pure_domain, args.f)
+    elif args.l is not None:
+        dfile = args.l
+        
+        if os.path.isfile(dfile):
+            domains = get_domain_list_from_file(dfile)
+            print("Found %d unique pure domains to test" % len(domains))
 
-    if args.f:
-        get_hosts(pure_domain)
-        # TODO re-enable this when fixed
-        #get_domains(pure_domain)
+            for domain in domains:
+                print("\n==============================Testing %s==============================" % domain)
+                test_domain(domain, args.f)
+        else:
+            print("File %s not found" % dfile)
+            sys.exit(-1)
+
+        
+       
+
+
+    
+    
+    
         
         
     
