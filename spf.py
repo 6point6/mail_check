@@ -43,7 +43,8 @@ servers = {"servers.mcsv.net": "Mailchimp",
             "mail.zohoanalytics.com": "Zoho Cloud Platform",
             "spf.smtp2go.com": "SMTP2GO Email sender",
             "_netblocks.eloqua.com": "Oracle Eloqua",
-            "_spf.fireeyecloud.com": "FireEye"}
+            "_spf.fireeyecloud.com": "FireEye",
+            "servers.outfunnel.com": "OutFunnel"}
 
 server_suffices = {"pphosted.com": "ProofPoint"}
 
