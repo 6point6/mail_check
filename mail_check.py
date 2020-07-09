@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 # See https://www.ncsc.gov.uk/information/mailcheck for the NCSC version
 # For more info see https://dmarc.org/overview/, https://tools.ietf.org/html/rfc4408, https://tools.ietf.org/html/rfc6376
 import os, sys

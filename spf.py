@@ -5,6 +5,7 @@
 import checkdmarc
 
 # known sending servers
+# TODO add from https://github.com/covert-labs/mx-intel?
 servers = {"servers.mcsv.net": "Mailchimp", 
             "_spf.salesforce.com": "SalesForce",
             "_spf.google.com": "Google Mail",
@@ -40,7 +41,11 @@ servers = {"servers.mcsv.net": "Mailchimp",
             "mktomail.com": "MarketTo Emailer",
             "spf.exclaimer.net": "Exclaimer Signatures",
             "mail.zohoanalytics.com": "Zoho Cloud Platform",
-            "spf.smtp2go.com": "SMTP2GO Email sender"}
+            "spf.smtp2go.com": "SMTP2GO Email sender",
+            "_netblocks.eloqua.com": "Oracle Eloqua",
+            "_spf.fireeyecloud.com": "FireEye"}
+
+server_suffices = {"pphosted.com": "ProofPoint"}
 
 
 # Get the SPF record 
@@ -150,5 +155,12 @@ def parse_SPF(record, domain):
 def processInclude(field):
     if field in servers:
         print("Known mail server \"%s\": %s" % (field, servers[field]))
+        return
     else:
-        print("Unknown mail server: %s" % field)
+        for suffix in server_suffices:
+            if suffix in field:
+                print("Known mail server \"%s\": %s" % (field, server_suffices[suffix]))
+                return
+    
+    print("Unknown mail server: %s" % field)
+        
