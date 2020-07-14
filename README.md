@@ -3,6 +3,8 @@ Script for checking the DMARC, SPF parts of a domain DNS record.
 
 Uses python library [checkdmarc](https://github.com/domainaware/checkdmarc/blob/master/checkdmarc.py), which works when provided with a name server.
 
+SPF breakdown text taken from [dmarcian.com](https://dmarcian.com/spf-syntax-table/).
+
 ## Pre-Reqs
 First, own the libs:
 ```
