@@ -1,12 +1,14 @@
-# mail_check
+# Overview
 Script for checking the DMARC, SPF parts of a domain DNS record.
 
-Uses python library checkdmarc, which works when provided with a name server. See https://github.com/domainaware/checkdmarc/blob/master/checkdmarc.py.
+Uses python library [checkdmarc](https://github.com/domainaware/checkdmarc/blob/master/checkdmarc.py), which works when provided with a name server.
 
-First own the libs:
+## Pre-Reqs
+First, own the libs:
 ```
 pip3 install checkdmarc tabulate
 ```
+
 # Running
 ```shell
 usage: mail_check.py [-h] [-d D] [-l L] [-f]
@@ -23,26 +25,26 @@ optional arguments:
 ## Example
 Run with "-d" and the domain to do a DMARC and SPF check:
 ```Shell
-> python3 ./mail_check.py -d 6point6.co.uk
+> python3 mail_check.py -d 6point6.co.uk
 Pure domain = "6point6.co.uk"
 
+
 ==== DMARC ====
-Problem found: second entry should be 'p',currently set to "rua=mailto:55d7175f07@rep.dmarcanalyzer.com"
-
-Problem found: DMARC record "p" tag is set to "none", which does not prevent abuse on your domain. If you are satisfied with the authentication success of your sending sources, move your policy to a 'p=quarantine' or 'p=reject'.
-
 Field       Value
-----------  -------------------------------------------------------------------------------------------------
+----------  -------------------------------------------------------------------------------------------------------
 Location    6point6.co.uk
 Version     DMARC1
-Raw Record  v=DMARC1; rua=mailto:55d7175f07@rep.dmarcanalyzer.com; p=none; pct=100; sp=none; adkim=r; aspf=r;
+Raw Record  v=DMARC1; p=quarantine; rua=mailto:55d7175f07@rep.dmarcanalyzer.com; pct=100; sp=none; adkim=r; aspf=r;
 
 Fields:
 
 Key    Set          Value                                       Comment
------  -----------  ------------------------------------------  ----------------------------------------------------------
-p      True         none                                        No specific action be taken on mail that fails
-                                                                DMARC authentication and alignment.
+-----  -----------  ------------------------------------------  ----------------------------------------------------------------
+p      True         quarantine                                  Mail failing the DMARC authentication and alignment
+                                                                checks be treated as suspicious by mail receivers.
+                                                                This can mean receivers place the email in the spam/junk folder,
+                                                                flag as it suspicious
+                                                                or scrutinize this mail with extra intensity.
 adkim  True         r                                           Relaxed Mode allows Authenticated DKIM/SPF domains
                                                                 that share a common Organizational Domain
                                                                 with an email's "header-From:"
@@ -70,7 +72,7 @@ ri     False        86400                                       The number of se
                                                                 The default value is 86,400 seconds or a day.
 
 ==== SPF ====
-Raw SPF Record: v=spf1 include:servers.mcsv.net include:_spf.google.com ip4:78.137.112.53 include:_spf.salesforce.com ~all
+Raw SPF Record: v=spf1 include:servers.mcsv.net include:_spf.google.com include:servers.outfunnel.com ~all
 
 Details:
 Version: v=spf1
@@ -79,34 +81,35 @@ Version: v=spf1
 Included senders: 
 Known mail server "servers.mcsv.net": Mailchimp
 Known mail server "_spf.google.com": Google Mail
-IPv4 Address 78.137.112.53
-Known mail server "_spf.salesforce.com": SalesForce
+Known mail server "servers.outfunnel.com": OutFunnel
 
 Excluded senders:
+None
 
 ```
 
-The "-f" option gives full results that include host records:
+The "-f" option gives full results, which include host records:
 ```shell
-> python3 ./mail_check.py -d 6point6.co.uk -f
+> python3 mail_check.py -d 6point6.co.uk -f
 Pure domain = "6point6.co.uk"
 
-==== DMARC ====
-Problem found: second entry should be 'p',currently set to "rua=mailto:55d7175f07@rep.dmarcanalyzer.com"
 
-Problem found: DMARC record "p" tag is set to "none", which does not prevent abuse on your domain. If you are satisfied with the authentication success of your sending sources, move your policy to a 'p=quarantine' or 'p=reject'.
+==== DMARC ====
 Field       Value
-----------  -------------------------------------------------------------------------------------------------
+----------  -------------------------------------------------------------------------------------------------------
 Location    6point6.co.uk
 Version     DMARC1
-Raw Record  v=DMARC1; rua=mailto:55d7175f07@rep.dmarcanalyzer.com; p=none; pct=100; sp=none; adkim=r; aspf=r;
+Raw Record  v=DMARC1; p=quarantine; rua=mailto:55d7175f07@rep.dmarcanalyzer.com; pct=100; sp=none; adkim=r; aspf=r;
 
 Fields:
 
 Key    Set          Value                                       Comment
------  -----------  ------------------------------------------  ----------------------------------------------------------
-p      True         none                                        No specific action be taken on mail that fails
-                                                                DMARC authentication and alignment.
+-----  -----------  ------------------------------------------  ----------------------------------------------------------------
+p      True         quarantine                                  Mail failing the DMARC authentication and alignment
+                                                                checks be treated as suspicious by mail receivers.
+                                                                This can mean receivers place the email in the spam/junk folder,
+                                                                flag as it suspicious
+                                                                or scrutinize this mail with extra intensity.
 adkim  True         r                                           Relaxed Mode allows Authenticated DKIM/SPF domains
                                                                 that share a common Organizational Domain
                                                                 with an email's "header-From:"
@@ -134,7 +137,7 @@ ri     False        86400                                       The number of se
                                                                 The default value is 86,400 seconds or a day.
 
 ==== SPF ====
-Raw SPF Record: v=spf1 include:servers.mcsv.net include:_spf.google.com ip4:78.137.112.53 include:_spf.salesforce.com ~all
+Raw SPF Record: v=spf1 include:servers.mcsv.net include:_spf.google.com include:servers.outfunnel.com ~all
 
 Details:
 Version: v=spf1
@@ -143,15 +146,15 @@ Version: v=spf1
 Included senders: 
 Known mail server "servers.mcsv.net": Mailchimp
 Known mail server "_spf.google.com": Google Mail
-IPv4 Address 78.137.112.53
-Known mail server "_spf.salesforce.com": SalesForce
+Known mail server "servers.outfunnel.com": OutFunnel
 
 Excluded senders:
+None
 
 
 ==== Hosts ====
 Hostname: aspmx.l.google.com, preference: 10, TLS: True, starttls: True.
-Addresses: 2a00:1450:400c:c03::1a, 74.125.206.27, 
+Addresses: 2a00:1450:400c:c07::1b, 64.233.184.27, 
 
 Hostname: alt1.aspmx.l.google.com, preference: 20, TLS: True, starttls: True.
 Addresses: 209.85.233.26, 2a00:1450:4010:c03::1b, 
@@ -160,14 +163,13 @@ Hostname: alt2.aspmx.l.google.com, preference: 20, TLS: True, starttls: True.
 Addresses: 142.250.4.27, 2404:6800:4003:c06::1a, 
 
 Hostname: aspmx2.googlemail.com, preference: 30, TLS: True, starttls: True.
-Addresses: 209.85.233.27, 2a00:1450:4010:c03::1b, 
+Addresses: 209.85.233.26, 2a00:1450:4010:c03::1b, 
 
 Hostname: aspmx3.googlemail.com, preference: 40, TLS: True, starttls: True.
-Addresses: 142.250.4.26, 2404:6800:4003:c06::1a, 
+Addresses: 142.250.4.27, 2404:6800:4003:c06::1a, 
 
-Warning: 2a00:1450:400c:c03::1a does not have any reverse DNS (PTR) records
 Warning: 142.250.4.27 does not have any reverse DNS (PTR) records
 Warning: 2404:6800:4003:c06::1a does not have any reverse DNS (PTR) records
-Warning: 142.250.4.26 does not have any reverse DNS (PTR) records
+Warning: 142.250.4.27 does not have any reverse DNS (PTR) records
 Warning: 2404:6800:4003:c06::1a does not have any reverse DNS (PTR) records
 ```

@@ -104,24 +104,31 @@ def parse_SPF(record, domain):
 
     # print all includes
     print("\nIncluded senders: ")
+    count = 0
 
     for field in fields:
         # exclude all but include
         if field[0:1] != "-" and field[0:1] != "~" and field[0:1] != "?":
             # domain, implicit +
             if field[:8] == "include:":
+                count += 1
+
                 if domain in field:
                     print("Proprietary mail server: %s" % field[8:])
                 else:
                     processInclude(field[8:])
             # domain, explicit +
             elif field[:9] == "+include:":
+                count += 1
+
                 if domain in field:
                     print("Proprietary mail server: %s" % field[9:])
                 else:
                     processInclude(field[9:])
             # IPv4
             elif field[:4] == "ip4:":
+                count += 1
+
                 # check for range
                 if "/" in field:
                     print("IPv4 Address Range %s" % field[4:])
@@ -129,25 +136,37 @@ def parse_SPF(record, domain):
                     print("IPv4 Address %s" % field[4:])
             # IPv6
             elif field[:4] == "ip6:":
+                count += 1
+
                 # check for range
                 if "/" in field:
                     print("IPv6 Address Range %s" % field[4:])
                 else:
                     print("IPv6 Address %s" % field[4:])
+    
+    if count == 0:
+        print("None")
 
     # print all excludes
     print("\nExcluded senders:")
+    count = 0
 
     for field in fields:
         if field[0:1] == "-":
             if field != "-all":
                 print("Reject: %s" % field[1:])
+                count += 1
         elif field[0:1] == "~":
             if field != "~all":
                 print("Soft fail: %s" % field[1:])
+                count += 1
         elif field[0:1] == "?":
             if field != "?all":
                 print("No rule: %s" % field[1:])
+                count += 1
+    
+    if count == 0:
+        print("None")
     
     print("\n")
 
