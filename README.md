@@ -40,38 +40,49 @@ Raw Record  v=DMARC1; p=quarantine; rua=mailto:55d7175f07@rep.dmarcanalyzer.com;
 
 Fields:
 
-Key    Set          Value                                       Comment
------  -----------  ------------------------------------------  ----------------------------------------------------------------
-p      True         quarantine                                  Mail failing the DMARC authentication and alignment
-                                                                checks be treated as suspicious by mail receivers.
-                                                                This can mean receivers place the email in the spam/junk folder,
-                                                                flag as it suspicious
-                                                                or scrutinize this mail with extra intensity.
-adkim  True         r                                           Relaxed Mode allows Authenticated DKIM/SPF domains
-                                                                that share a common Organizational Domain
-                                                                with an email's "header-From:"
-                                                                domain to pass the DMARC check.
-aspf   True         r                                           Relaxed Mode allows Authenticated DKIM/SPF domains
-                                                                that share a common Organizational Domain
-                                                                with an email's "header-From:"
-                                                                domain to pass the DMARC check.
-rua    True         Address: 55d7175f07@rep.dmarcanalyzer.com,  Indicates where aggregate DMARC reports should be sent to.
-                    scheme: mailto
-ruf    Not Defined  Not Defined                                 Indicates where forensic DMARC reports should be sent to.
-pc     True         100                                         Percentage of messages to which the
-                                                                DMARC policy is to be applied.
-                                                                This parameter provides a way to gradually
-                                                                implement and test the impact of the policy.
-sp     True         none                                        (Sub-Domains) No specific action be taken on mail
-                                                                that fails DMARC authentication and alignment.
-fo     False        0                                           Generate a DMARC failure report if all
-                                                                underlying authentication mechanisms
-                                                                fail to produce an aligned “pass” result. (Default)
-rf     False        afrf                                        The reporting format for individual Forensic reports.
-                                                                Authorized values: “afrf”, “iodef”.
-ri     False        86400                                       The number of seconds elapsed between
-                                                                sending aggregate reports to the sender.
-                                                                The default value is 86,400 seconds or a day.
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| Key   | Set         | Value                                      | Comment                                                          |
++=======+=============+============================================+==================================================================+
+| p     | True        | quarantine                                 | Mail failing the DMARC authentication and alignment              |
+|       |             |                                            | checks be treated as suspicious by mail receivers.               |
+|       |             |                                            | This can mean receivers place the email in the spam/junk folder, |
+|       |             |                                            | flag as it suspicious                                            |
+|       |             |                                            | or scrutinize this mail with extra intensity.                    |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| adkim | True        | r                                          | Relaxed Mode allows Authenticated DKIM/SPF domains               |
+|       |             |                                            | that share a common Organizational Domain                        |
+|       |             |                                            | with an email's "header-From:"                                   |
+|       |             |                                            | domain to pass the DMARC check.                                  |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| aspf  | True        | r                                          | Relaxed Mode allows Authenticated DKIM/SPF domains               |
+|       |             |                                            | that share a common Organizational Domain                        |
+|       |             |                                            | with an email's "header-From:"                                   |
+|       |             |                                            | domain to pass the DMARC check.                                  |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| rua   | True        | Address: 55d7175f07@rep.dmarcanalyzer.com, | Indicates where aggregate DMARC reports should be sent to.       |
+|       |             | scheme: mailto                             |                                                                  |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| ruf   | Not Defined | Not Defined                                | Indicates where forensic DMARC reports should be sent to.        |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| pc    | True        | 100                                        | Percentage of messages to which the                              |
+|       |             |                                            | DMARC policy is to be applied.                                   |
+|       |             |                                            | This parameter provides a way to gradually                       |
+|       |             |                                            | implement and test the impact of the policy.                     |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| sp    | True        | none                                       | (Sub-Domains) No specific action be taken on mail                |
+|       |             |                                            | that fails DMARC authentication and alignment.                   |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| fo    | False       | 0                                          | Generate a DMARC failure report if all                           |
+|       |             |                                            | underlying authentication mechanisms                             |
+|       |             |                                            | fail to produce an aligned “pass” result. (Default)              |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| rf    | False       | afrf                                       | The reporting format for individual Forensic reports.            |
+|       |             |                                            | Authorized values: “afrf”, “iodef”.                              |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| ri    | False       | 86400                                      | The number of seconds elapsed between                            |
+|       |             |                                            | sending aggregate reports to the sender.                         |
+|       |             |                                            | The default value is 86,400 seconds or a day.                    |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
 
 ==== SPF ====
 Raw SPF Record: v=spf1 include:servers.mcsv.net include:_spf.google.com include:servers.outfunnel.com ~all
@@ -81,9 +92,15 @@ Version: v=spf1
 ~all means soft fail mail that doesn't match a rule - accept but tag
 
 Included senders: 
-Known mail server "servers.mcsv.net": Mailchimp
-Known mail server "_spf.google.com": Google Mail
-Known mail server "servers.outfunnel.com": OutFunnel
++-------------------+-----------------------+-------------+
+| Type              | Value                 | Detail      |
++===================+=======================+=============+
+| Known mail server | servers.mcsv.net      | Mailchimp   |
++-------------------+-----------------------+-------------+
+| Known mail server | _spf.google.com       | Google Mail |
++-------------------+-----------------------+-------------+
+| Known mail server | servers.outfunnel.com | OutFunnel   |
++-------------------+-----------------------+-------------+
 
 Excluded senders:
 None
@@ -92,7 +109,7 @@ None
 
 The "-f" option gives full results, which include host records:
 ```shell
-> python3 mail_check.py -d 6point6.co.uk -f
+> python3 mail_check.py -d 6point6.co.uk
 Pure domain = "6point6.co.uk"
 
 
@@ -105,38 +122,49 @@ Raw Record  v=DMARC1; p=quarantine; rua=mailto:55d7175f07@rep.dmarcanalyzer.com;
 
 Fields:
 
-Key    Set          Value                                       Comment
------  -----------  ------------------------------------------  ----------------------------------------------------------------
-p      True         quarantine                                  Mail failing the DMARC authentication and alignment
-                                                                checks be treated as suspicious by mail receivers.
-                                                                This can mean receivers place the email in the spam/junk folder,
-                                                                flag as it suspicious
-                                                                or scrutinize this mail with extra intensity.
-adkim  True         r                                           Relaxed Mode allows Authenticated DKIM/SPF domains
-                                                                that share a common Organizational Domain
-                                                                with an email's "header-From:"
-                                                                domain to pass the DMARC check.
-aspf   True         r                                           Relaxed Mode allows Authenticated DKIM/SPF domains
-                                                                that share a common Organizational Domain
-                                                                with an email's "header-From:"
-                                                                domain to pass the DMARC check.
-rua    True         Address: 55d7175f07@rep.dmarcanalyzer.com,  Indicates where aggregate DMARC reports should be sent to.
-                    scheme: mailto
-ruf    Not Defined  Not Defined                                 Indicates where forensic DMARC reports should be sent to.
-pc     True         100                                         Percentage of messages to which the
-                                                                DMARC policy is to be applied.
-                                                                This parameter provides a way to gradually
-                                                                implement and test the impact of the policy.
-sp     True         none                                        (Sub-Domains) No specific action be taken on mail
-                                                                that fails DMARC authentication and alignment.
-fo     False        0                                           Generate a DMARC failure report if all
-                                                                underlying authentication mechanisms
-                                                                fail to produce an aligned “pass” result. (Default)
-rf     False        afrf                                        The reporting format for individual Forensic reports.
-                                                                Authorized values: “afrf”, “iodef”.
-ri     False        86400                                       The number of seconds elapsed between
-                                                                sending aggregate reports to the sender.
-                                                                The default value is 86,400 seconds or a day.
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| Key   | Set         | Value                                      | Comment                                                          |
++=======+=============+============================================+==================================================================+
+| p     | True        | quarantine                                 | Mail failing the DMARC authentication and alignment              |
+|       |             |                                            | checks be treated as suspicious by mail receivers.               |
+|       |             |                                            | This can mean receivers place the email in the spam/junk folder, |
+|       |             |                                            | flag as it suspicious                                            |
+|       |             |                                            | or scrutinize this mail with extra intensity.                    |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| adkim | True        | r                                          | Relaxed Mode allows Authenticated DKIM/SPF domains               |
+|       |             |                                            | that share a common Organizational Domain                        |
+|       |             |                                            | with an email's "header-From:"                                   |
+|       |             |                                            | domain to pass the DMARC check.                                  |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| aspf  | True        | r                                          | Relaxed Mode allows Authenticated DKIM/SPF domains               |
+|       |             |                                            | that share a common Organizational Domain                        |
+|       |             |                                            | with an email's "header-From:"                                   |
+|       |             |                                            | domain to pass the DMARC check.                                  |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| rua   | True        | Address: 55d7175f07@rep.dmarcanalyzer.com, | Indicates where aggregate DMARC reports should be sent to.       |
+|       |             | scheme: mailto                             |                                                                  |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| ruf   | Not Defined | Not Defined                                | Indicates where forensic DMARC reports should be sent to.        |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| pc    | True        | 100                                        | Percentage of messages to which the                              |
+|       |             |                                            | DMARC policy is to be applied.                                   |
+|       |             |                                            | This parameter provides a way to gradually                       |
+|       |             |                                            | implement and test the impact of the policy.                     |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| sp    | True        | none                                       | (Sub-Domains) No specific action be taken on mail                |
+|       |             |                                            | that fails DMARC authentication and alignment.                   |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| fo    | False       | 0                                          | Generate a DMARC failure report if all                           |
+|       |             |                                            | underlying authentication mechanisms                             |
+|       |             |                                            | fail to produce an aligned “pass” result. (Default)              |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| rf    | False       | afrf                                       | The reporting format for individual Forensic reports.            |
+|       |             |                                            | Authorized values: “afrf”, “iodef”.                              |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
+| ri    | False       | 86400                                      | The number of seconds elapsed between                            |
+|       |             |                                            | sending aggregate reports to the sender.                         |
+|       |             |                                            | The default value is 86,400 seconds or a day.                    |
++-------+-------------+--------------------------------------------+------------------------------------------------------------------+
 
 ==== SPF ====
 Raw SPF Record: v=spf1 include:servers.mcsv.net include:_spf.google.com include:servers.outfunnel.com ~all
@@ -146,9 +174,15 @@ Version: v=spf1
 ~all means soft fail mail that doesn't match a rule - accept but tag
 
 Included senders: 
-Known mail server "servers.mcsv.net": Mailchimp
-Known mail server "_spf.google.com": Google Mail
-Known mail server "servers.outfunnel.com": OutFunnel
++-------------------+-----------------------+-------------+
+| Type              | Value                 | Detail      |
++===================+=======================+=============+
+| Known mail server | servers.mcsv.net      | Mailchimp   |
++-------------------+-----------------------+-------------+
+| Known mail server | _spf.google.com       | Google Mail |
++-------------------+-----------------------+-------------+
+| Known mail server | servers.outfunnel.com | OutFunnel   |
++-------------------+-----------------------+-------------+
 
 Excluded senders:
 None
