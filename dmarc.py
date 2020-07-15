@@ -145,7 +145,7 @@ def process_DMARC(domain):
         ["fo", parsedRecord.fo_explicit, parsedRecord.fo_value, get_fo_words(parsedRecord.fo_value)],
         ["rf", parsedRecord.rf_explicit, parsedRecord.rf_value, "The reporting format for individual Forensic reports.\nAuthorized values: “afrf”, “iodef”."],
         ["ri", parsedRecord.ri_explicit, parsedRecord.ri_value, "The number of seconds elapsed between\nsending aggregate reports to the sender.\nThe default value is 86,400 seconds or a day."]
-        ], headers=["Key", "Set", "Value", "Comment"], colalign=("left",)))
+        ], headers=["Key", "Set", "Value", "Comment"], colalign=("left",), tablefmt="grid"))
 
         print()
 

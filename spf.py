@@ -3,6 +3,7 @@
 # https://dmarcian.com/spf-syntax-table/
 
 import checkdmarc
+from tabulate import tabulate
 
 # known sending servers
 # TODO add from https://github.com/covert-labs/mx-intel?
@@ -104,69 +105,63 @@ def parse_SPF(record, domain):
 
     # print all includes
     print("\nIncluded senders: ")
-    count = 0
+    rows = []
 
     for field in fields:
         # exclude all but include
         if field[0:1] != "-" and field[0:1] != "~" and field[0:1] != "?":
             # domain, implicit +
             if field[:8] == "include:":
-                count += 1
-
                 if domain in field:
-                    print("Proprietary mail server: %s" % field[8:])
+                    rows.append(["Proprietary mail server", "{}".format(field[8:]), ""])
                 else:
-                    processInclude(field[8:])
+                    rows.append(processInclude(field[8:]))
+                    
             # domain, explicit +
             elif field[:9] == "+include:":
-                count += 1
-
                 if domain in field:
-                    print("Proprietary mail server: %s" % field[9:])
+                    rows.append(["Proprietary mail server", "{}".format(field[9:]), ""])
                 else:
-                    processInclude(field[9:])
+                    rows.append(processInclude(field[9:]))
             # IPv4
             elif field[:4] == "ip4:":
-                count += 1
-
                 # check for range
                 if "/" in field:
-                    print("IPv4 Address Range %s" % field[4:])
+                    rows.append(["IPv4 Address Range", "{}".format(field[4:]), ""])
                 else:
-                    print("IPv4 Address %s" % field[4:])
+                    rows.append(["IPv4 Address Range", "{}".format(field[4:]), ""])
             # IPv6
             elif field[:4] == "ip6:":
-                count += 1
-
                 # check for range
                 if "/" in field:
-                    print("IPv6 Address Range %s" % field[4:])
+                    rows.append(["IPv6 Address Range", "{}".format(field[4:]), ""])
                 else:
-                    print("IPv6 Address %s" % field[4:])
+                    rows.append(["IPv6 Address Range", "{}".format(field[4:]), ""])
     
-    if count == 0:
+    if len(rows) == 0:
         print("None")
+    else:
+        print(tabulate(rows, headers=["Type", "Value", "Detail"], colalign=("left",), tablefmt="grid"))
 
     # print all excludes
     print("\nExcluded senders:")
-    count = 0
+    rows = []
 
     for field in fields:
         if field[0:1] == "-":
             if field != "-all":
-                print("Reject: %s" % field[1:])
-                count += 1
+                rows.append(["Reject", "{}".format(field[1:])])
         elif field[0:1] == "~":
             if field != "~all":
-                print("Soft fail: %s" % field[1:])
-                count += 1
+                rows.append(["Soft fail", "{}".format(field[1:])])
         elif field[0:1] == "?":
             if field != "?all":
-                print("No rule: %s" % field[1:])
-                count += 1
+                rows.append(["No rule", "{}".format(field[1:])])
     
-    if count == 0:
+    if len(rows) == 0:
         print("None")
+    else:
+        print(tabulate(rows, headers=["Type", "Value"], colalign=("left",), tablefmt="grid"))
     
     print("\n")
 
@@ -174,13 +169,11 @@ def parse_SPF(record, domain):
 # Lookup mail server
 def processInclude(field):
     if field in servers:
-        print("Known mail server \"%s\": %s" % (field, servers[field]))
-        return
+        return ["Known mail server", "{}".format(field), "{}".format(servers[field])]
     else:
         for suffix in server_suffices:
             if suffix in field:
-                print("Known mail server \"%s\": %s" % (field, server_suffices[suffix]))
-                return
+                return ["Known mail server", "{}".format(field), "{}".format(server_suffices[suffix])]
     
-    print("Unknown mail server: %s" % field)
+    return ["Unknown mail server", "{}".format(field), ""]
         
